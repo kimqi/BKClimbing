@@ -1,12 +1,8 @@
-% User Inputs
+% Get some User Inputs
 level = 6;
 vmax = '6C+';
 
-% Loading in data
-D = readtable("D:\Data\Climbing\MB2016 Database.xlsx");
-climbs = table2array(D);
-
-% Initialize variables that are constant
+% Initialize variables
 level_dict = [4 5 1;
               4 4 2;
               4 3 3;
@@ -19,34 +15,47 @@ level_dict = [4 5 1;
               0 4 6;];
 
 grades = {'6B', '6B+', '6C', '6C+', '7A', '7A+', '7B', '7B+', '7C', '7C+', '8A'};
+grade_value = [4 4 5 5.5 6 7 8 8.5 9 10 11];
 next_climbs = {};
+total_climb_count = 532;
 
-% Get all the values we need
+vmax_index = find(strcmp(grades, vmax));
+rng('shuffle');
+
 cur_level = level_dict(level,:);
 
-rng('shuffle')
 
-for ilvl = 1:3
-    v_grade = grades{find(strcmp(vmax, grades)) - 3 + ilvl};
-    climb_list = climbs(strcmp(v_grade, climbs(:,2)),:);
-    
-    session_climbs = [];
-    ii = 1;
-    while ii <= cur_level(ilvl)
-        r = randi([1 height(climb_list)]);
-        
-        if ~ismember(r, session_climbs)
-            session_climbs = [session_climbs; r];
-            ii = ii + 1;
-        end
+% Get Climbs from V-Max - 2
+vmax2 = vmax_index - 2;
+climb_list = readtable('MB2016.xlsx', 'Sheet', grades{vmax2});
+todo_climbs = climb_list(climb_list.Sent ~= 1, :);
+
+if height(todo_climbs) >= cur_level(1)
+    climb_list = todo_climbs;
+end
+
+session_climbs = [];
+ii = cur_level(1);
+while ii > 0
+    r = randi([1 height(climb_list)]);
+    if ~ismember(r, session_climbs)
+        session_climbs = [session_climbs; r];
+        ii = ii - 1;
     end
-    next_climbs= vertcat(next_climbs, climb_list(session_climbs,:));
 end
 
-disp('Next Session Climbs')
-for txt = 1:height(next_climbs)
-    disp(strcat(next_climbs{txt, 1}, ' (', next_climbs{txt,2}, ')'))
-end
+
+
+% Get Climbs from V-Max - 1
+
+% Get Climbs from V-Max
+
+% Do all the above in a loop?
+
+% Loading in data
+climbs = readtable('MB2016.xlsx', 'Sheet', vmax);
+rng('shuffle');
+
 
 
 
