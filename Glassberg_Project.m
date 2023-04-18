@@ -1,6 +1,7 @@
 % Get some User Inputs
-level = 6;
+level = 8;
 vmax = '6C+';
+warning off;
 
 % Initialize variables
 level_dict = [4 5 1;
@@ -25,9 +26,10 @@ rng('shuffle');
 cur_level = level_dict(level,:);
 
 
-% Get Climbs from V-Max - 2
+%% Get Climbs from V-Max - 2
 vmax2 = vmax_index - 2;
 climb_list = readtable('MB2016.xlsx', 'Sheet', grades{vmax2});
+total_vmax2_climbs = height(climb_list);
 todo_climbs = climb_list(climb_list.Sent ~= 1, :);
 
 if height(todo_climbs) >= cur_level(1)
@@ -43,18 +45,95 @@ while ii > 0
         ii = ii - 1;
     end
 end
+next_vmax2_climbs = climb_list(session_climbs,:);
+for jj = 1:height(next_vmax2_climbs)
+    next_vmax2_climbs{jj,6} = next_vmax2_climbs{jj,3} + (next_vmax2_climbs{jj,4} / total_vmax2_climbs);
+
+end
 
 
+%% Get Climbs from V-Max - 1
+vmax1 = vmax_index - 1;
+climb_list = readtable('MB2016.xlsx', 'Sheet', grades{vmax1});
+total_vmax1_climbs = height(climb_list);
+todo_climbs = climb_list(climb_list.Sent ~= 1, :);
 
-% Get Climbs from V-Max - 1
+if height(todo_climbs) >= cur_level(2)
+    climb_list = todo_climbs;
+end
+
+session_climbs = [];
+ii = cur_level(2);
+while ii > 0
+    r = randi([1 height(climb_list)]);
+    if ~ismember(r, session_climbs)
+        session_climbs = [session_climbs; r];
+        ii = ii - 1;
+    end
+end
+
+next_vmax1_climbs = climb_list(session_climbs,:);
+for jj = 1:height(next_vmax1_climbs)
+    next_vmax1_climbs{jj,6} = next_vmax1_climbs{jj,3} + (next_vmax1_climbs{jj,4} / total_vmax1_climbs);
+end
+
 
 % Get Climbs from V-Max
+climb_list = readtable('MB2016.xlsx', 'Sheet', grades{vmax_index});
+total_vmax_climbs = height(climb_list);
+todo_climbs = climb_list(climb_list.Sent ~= 1, :);
+working_climbs = climb_list(climb_list.Sent == 0, :);
+done_climbs = climb_list(climb_list.Sent == 1, :);
 
-% Do all the above in a loop?
+session_climbs = [];
+ii = cur_level(3);
 
-% Loading in data
-climbs = readtable('MB2016.xlsx', 'Sheet', vmax);
-rng('shuffle');
+if ~isempty(done_climbs)
+    r = randi([1 height(done_climbs)]);
+    session_climbs = [session_climbs; r];
+    next_vmax_climbs = done_climbs(session_climbs,:);
+    ii = ii - 1;
+end
+
+
+session_climbs = [];
+if ~isempty(working_climbs)
+    if ii > 0
+        r = randi([1 height(working_climbs)]);
+        session_climbs = [session_climbs; r];
+        ii = ii - 1;
+    end
+    next_vmax_climbs = vertcat(next_vmax_climbs, working_climbs(session_climbs,:));
+end
+    
+session_climbs = [];
+while ii > 0
+    
+    r = randi([1 height(todo_climbs)]);
+    if ~ismember(r, session_climbs)
+        session_climbs = [session_climbs; r];
+        ii = ii - 1;
+    end
+   
+end
+next_vmax_climbs = vertcat(next_vmax_climbs, todo_climbs(session_climbs,:));
+
+for jj = 1:height(next_vmax_climbs)
+    next_vmax_climbs{jj,6} = next_vmax_climbs{jj,3} + (next_vmax_climbs{jj,4} / total_vmax_climbs);
+end
+
+next_climbs = vertcat(next_vmax2_climbs, next_vmax1_climbs, next_vmax_climbs);
+
+disp('Next Session Climbs');
+disp('----------------------------');
+% Get the score of the session
+for ii = 1:height(next_climbs)
+    disp(strcat(num2str(ii), '. ', next_climbs.Name{ii}, ' (', num2str(next_climbs.Grade(ii)), ')'));
+end
+disp('----------------------------');
+disp(strcat('Total Session Load: ', num2str(sum(next_climbs.Var6))));
+
+
 
 
 
