@@ -46,10 +46,7 @@ while ii > 0
     end
 end
 next_vmax2_climbs = climb_list(session_climbs,:);
-for jj = 1:height(next_vmax2_climbs)
-    next_vmax2_climbs{jj,6} = next_vmax2_climbs{jj,3} + (next_vmax2_climbs{jj,4} / total_vmax2_climbs);
 
-end
 
 
 %% Get Climbs from V-Max - 1
@@ -73,10 +70,6 @@ while ii > 0
 end
 
 next_vmax1_climbs = climb_list(session_climbs,:);
-for jj = 1:height(next_vmax1_climbs)
-    next_vmax1_climbs{jj,6} = next_vmax1_climbs{jj,3} + (next_vmax1_climbs{jj,4} / total_vmax1_climbs);
-end
-
 
 % Get Climbs from V-Max
 climb_list = readtable('MB2016.xlsx', 'Sheet', grades{vmax_index});
@@ -118,9 +111,8 @@ while ii > 0
 end
 next_vmax_climbs = vertcat(next_vmax_climbs, todo_climbs(session_climbs,:));
 
-for jj = 1:height(next_vmax_climbs)
-    next_vmax_climbs{jj,6} = next_vmax_climbs{jj,3} + (next_vmax_climbs{jj,4} / total_vmax_climbs);
-end
+% Temporary while database is updating
+next_vmax2_climbs = next_vmax2_climbs(:, 1:6);
 
 next_climbs = vertcat(next_vmax2_climbs, next_vmax1_climbs, next_vmax_climbs);
 
@@ -131,8 +123,12 @@ for ii = 1:height(next_climbs)
     disp(strcat(num2str(ii), '. ', next_climbs.Name{ii}, ' (', num2str(next_climbs.Grade(ii)), ')'));
 end
 disp('----------------------------');
-disp(strcat('Total Session Load: ', num2str(sum(next_climbs.Var6))));
+session_load = sum(next_climbs.Weight);
+disp(strcat('Total Session Load: ', num2str(session_load)));
 
+expected_load = cur_level(1) * (grade_value(vmax2) + 0.5) + cur_level(2) * (grade_value(vmax1) + 0.5) + cur_level(3) * (grade_value(vmax_index) + 0.5);
+deviation = session_load - expected_load;
+disp(['Deviation from Load: ', num2str(deviation)]);
 
 
 
